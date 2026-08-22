@@ -1,0 +1,10 @@
+{
+  "chatgptSpeech.auth.tokenSource": "webSessionFile",
+  "chatgptSpeech.auth.webSessionTokenPath": "${home}/.chatgpt-speech/session.json",
+  "chatgptSpeech.transcription.language": "ru",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "javascript.validate.enable": false,
+  "eslint.enable": true,
+  "eslint.validate": ["typescript"],
+  "eslint.workingDirectories": ["."]
+}

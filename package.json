@@ -1,0 +1,188 @@
+{
+  "name": "chatgpt-speech",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "1.1.0",
+  "publisher": "Yasich217",
+  "author": {
+    "name": "Yasich217"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "icon": "assets/icon.png",
+  "keywords": [
+    "dictation",
+    "speech-to-text",
+    "chatgpt",
+    "voice",
+    "push-to-talk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yasich217/chatgpt-speech.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Yasich217/chatgpt-speech/issues"
+  },
+  "homepage": "https://github.com/Yasich217/chatgpt-speech#readme",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onUri",
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "chatgptSpeech.toggleDictation",
+        "title": "%command.toggleDictation.title%",
+        "category": "%command.category%",
+        "icon": "$(mic)"
+      },
+      {
+        "command": "chatgptSpeech.startDictation",
+        "title": "%command.startDictation.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.stopDictation",
+        "title": "%command.stopDictation.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.retryLastDictation",
+        "title": "%command.retryLastDictation.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.copyLastTranscript",
+        "title": "%command.copyLastTranscript.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.setOpenAIApiKey",
+        "title": "%command.setOpenAIApiKey.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.openAuthSessionPage",
+        "title": "%command.openAuthSessionPage.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.refreshWebSession",
+        "title": "%command.refreshWebSession.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.refreshWebSessionAndRetry",
+        "title": "%command.refreshWebSessionAndRetry.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "chatgptSpeech.showLog",
+        "title": "%command.showLog.title%",
+        "category": "%command.category%"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "chatgptSpeech.toggleDictation",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d"
+      }
+    ],
+    "configuration": {
+      "title": "%configuration.title%",
+      "properties": {
+        "chatgptSpeech.auth.tokenSource": {
+          "type": "string",
+          "enum": [
+            "codex",
+            "user",
+            "webSessionFile"
+          ],
+          "default": "webSessionFile",
+          "markdownDescription": "%configuration.auth.tokenSource.markdownDescription%"
+        },
+        "chatgptSpeech.auth.token": {
+          "type": "string",
+          "default": "",
+          "description": "%configuration.auth.token.description%"
+        },
+        "chatgptSpeech.auth.webSessionTokenPath": {
+          "type": "string",
+          "default": "${home}/.chatgpt-speech/session.json",
+          "description": "%configuration.auth.webSessionTokenPath.description%"
+        },
+        "chatgptSpeech.externalCallbacks.allowedDomains": {
+          "type": "array",
+          "default": [],
+          "scope": "application",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "%configuration.externalCallbacks.allowedDomains.markdownDescription%"
+        },
+        "chatgptSpeech.externalCallbacks.caFile": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "%configuration.externalCallbacks.caFile.description%"
+        },
+        "chatgptSpeech.transcription.language": {
+          "type": "string",
+          "default": "ru",
+          "description": "%configuration.transcription.language.description%"
+        },
+        "chatgptSpeech.insert.trimTranscript": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.insert.trimTranscript.description%"
+        },
+        "chatgptSpeech.recorder.command": {
+          "type": "string",
+          "default": "ffmpeg",
+          "description": "%configuration.recorder.command.description%"
+        },
+        "chatgptSpeech.recorder.args": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "%configuration.recorder.args.description%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "npm run compile && npm run lint && npm run format:check && node --test test/*.test.cjs",
+    "compile": "tsc -p ./",
+    "format:check": "prettier --check .github/workflows/release.yml .vscode/launch.json .vscode/settings.json eslint.config.mjs package.json src/**/*.ts test/*.cjs tsconfig.json",
+    "lint": "eslint src/**/*.ts",
+    "package:vsix": "vsce package --no-dependencies",
+    "test": "npm run compile && node --test test/*.test.cjs",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.10.2",
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "^3.9.2",
+    "eslint": "^10.5.0",
+    "prettier": "^3.8.4",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.62.0"
+  }
+}

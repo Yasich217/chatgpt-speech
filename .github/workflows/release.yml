@@ -1,0 +1,115 @@
+name: Release VSIX
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check
+        run: npm run check
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          subject="$(git log -1 --pretty=%s)"
+          body="$(git log -1 --pretty=%b)"
+          latest_tag="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n 1 || true)"
+          package_version="$(node -p "require('./package.json').version")"
+
+          if [[ -z "$latest_tag" ]]; then
+            next_version="$package_version"
+            bump="initial"
+          else
+            base="${latest_tag#v}"
+            IFS=. read -r major minor patch <<< "$base"
+            subject_lc="$(printf '%s' "$subject" | tr '[:upper:]' '[:lower:]')"
+
+            if [[ "$subject_lc" == fix:* ]]; then
+              patch=$((patch + 1))
+              bump="patch"
+            elif [[ "$subject_lc" == feat:* || "$subject_lc" == fiat:* ]]; then
+              minor=$((minor + 1))
+              patch=0
+              bump="minor"
+            elif [[ "$subject_lc" == major:* || "$subject_lc" == release:* ]]; then
+              major=$((major + 1))
+              minor=0
+              patch=0
+              bump="major"
+            else
+              patch=$((patch + 1))
+              bump="patch"
+            fi
+
+            next_version="${major}.${minor}.${patch}"
+          fi
+
+          node - "$next_version" <<'NODE'
+          const fs = require("fs");
+          const version = process.argv[2];
+
+          const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+          packageJson.version = version;
+          fs.writeFileSync("package.json", `${JSON.stringify(packageJson, null, 2)}\n`);
+
+          const lock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
+          lock.version = version;
+          if (lock.packages && lock.packages[""]) {
+            lock.packages[""].version = version;
+          }
+          fs.writeFileSync("package-lock.json", `${JSON.stringify(lock, null, 2)}\n`);
+          NODE
+
+          {
+            echo "version=$next_version"
+            echo "tag=v$next_version"
+            echo "bump=$bump"
+            echo "subject<<EOF"
+            echo "$subject"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Initial release." > release-notes.md
+
+      - name: Package VSIX
+        run: npm run package:vsix -- --out "chatgpt-speech-${{ steps.version.outputs.version }}.vsix"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: chatgpt-speech-${{ steps.version.outputs.version }}
+          path: chatgpt-speech-${{ steps.version.outputs.version }}.vsix
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ChatGPT Speech ${{ steps.version.outputs.tag }}
+          body_path: release-notes.md
+          files: chatgpt-speech-${{ steps.version.outputs.version }}.vsix

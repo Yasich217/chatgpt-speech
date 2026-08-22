@@ -1,0 +1,16 @@
+node_modules/
+out/
+*.vsix
+logs/
+tmp/
+scripts/
+user-token*.json
+SMOKE*.md
+REALTIME-*.md
+PLAN.md
+TARGET.md
+sync.md
+AGENT.md
+test-dictation.md
+.chatgpt-speech/
+.DS_Store
